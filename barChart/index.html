@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>lEARNING d3</title>
+    <!-- Adding d3 library here -->
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  </head>
+  <body>
+    <!-- Main div which will display the barChart -->
+    <div id="chart"></div>
+    <!-- All values are stored as the following array -->
+    <script>
+      var myData = [100, 125, 320, 500, 450, 170, 270, 420, 350, 540, 600, 800];
+
+      var margin = {
+        top: 30,
+        bottom: 40,
+        left: 50,
+        right: 30
+      }
+
+      // Height and width of the barChart
+      var height = 500 - margin.top - margin.bottom;
+      var width = 500 - margin.left - margin.right;
+
+      var animateDuration = 2500;
+      var animateDelay = 50;
+
+      // Width of each bar and space between them is the barOffset
+      // var barWidth = 35;
+      // var barOffset = 1;
+
+      // Adding tooltip to each bar
+      var tooltip = d3.select('body').append('div')
+          .style('position', 'absolute')
+          .style('background', '#f4f4f4')
+          .style('pading', '5 15px')
+          .style('border', '1px #333 solid')
+          .style('border-radius', '5px')
+          .style('opacity', '0')
+
+      // Adjusting Chart height according to dataset
+      // scale converts data into corresponding values in the domain
+      // linear respresents linear scale that convert number into another num
+      var yScale = d3.scale.linear()
+      .domain([0, d3.max(myData)])
+      .range([0, height]);
+
+      // Adjusting Chart width according to dataset
+      // ordinal is a scale to arrange alpahbets in an order
+      var xScale = d3.scale.ordinal()
+      // domain represent the boundaries within which data lies
+      // range is used when we transform the raw data point value into a
+      // pixel coordinate
+      .domain(d3.range(0, myData.length))
+      // we are using ordinal scale that's why use rangeBands instead of range
+      .rangeBands([0, width]);
+
+      // Adding different shades of green
+      var colors = d3.scale.linear()
+        .domain([0, myData.length])
+        .range(['#98FB98', '#228B22'])
+
+      // we will select the div using d3 to render chart on div element
+      var myChart = d3.select('#chart')
+
+      // Using SVG to create shapes, here 'Rectangular bars'
+      .append('svg')
+
+        // assigning height, width and background color of the div element
+        .attr('width', width + margin.right + margin.left)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', 'translate('+margin.left+','+margin.top
+          +')')
+        .style('background', '#f4f4f4')
+
+        // selecting all Rectangular bars
+        .selectAll('rect')
+
+          // iterating over each value of the array myData
+          .data(myData)
+
+          // creating new nodes for incoming data
+          // appending data to the enter section
+          .enter().append('rect')
+
+            // adding styling to each Rectangular bar
+            .style('fill', function(d, i){
+              return colors(i)
+            })
+            // assigning rangeBand as singular width to the chart width
+            .attr('width', xScale.rangeBand())
+
+            .attr('height', 0)
+
+            // Assigning offset to each bar to avoid overlapping
+            .attr('x', function(d, i){
+              return xScale(i);
+            })
+
+            // height start from y=0, so to avoid drawing upside down chart
+            .attr('y', height)
+
+        // On hover, we wan t to display tooltip with faded color
+        .on('mouseover', function(d) {
+          tooltip.transition()
+            // Assigning poacity 1 to tooltip to make it visible on top of bar
+            .style('opacity', 1)
+
+          // We are displaying the data of the bar i.e. 'd'
+          tooltip.html(d)
+            // positioning the tooltip with the respective bar by assigning the
+            // left and top values of the tooltip box
+            .style('left', d3.event.pageX+'px')
+            .style('top', (d3.event.pageY+'px'))
+          // now selecting the bar and making opacity 0.5 to fade color
+          d3.select(this).style('opacity', 0.5)
+        })
+
+        // on mouseout, invisble the tooltip using opacity
+        .on('mouseout', function(d){
+          tooltip.transition()
+            .style('opacity', 0)
+          d3.select(this).style('opacity', 1)
+        })
+
+    // assigning height according to the height of the bars
+    myChart.transition()
+      .attr('height', function(d){
+        return yScale(d);
+      })
+      .attr('y', function(d){
+        return height - yScale(d)
+      })
+
+      // making bars display by taking sometime
+      .duration(animateDuration)
+
+      // making bar display after a delay between 2 bars
+      .delay(function(d, i){
+        return i * animateDelay
+      })
+
+      // elastic animation
+      .ease('elastic')
+
+      var vScale = d3.scale.linear()
+      .domain([0, d3.max(myData)])
+      .range([height, 0]);
+
+      // Adjusting Chart width according to dataset
+      // ordinal is a scale to arrange alpahbets in an order
+      var hScale = d3.scale.ordinal()
+      // domain represent the boundaries within which data lies
+      // range is used when we transform the raw data point value into a
+      // pixel coordinate
+      .domain(d3.range(0, myData.length))
+      // we are using ordinal scale that's why use rangeBands instead of range
+      .rangeBands([0, width]);
+
+      // Vertical Axis
+      var vAxis = d3.svg.axis()
+        .scale(vScale)
+        .orient('left')
+        .ticks(5)
+        .tickPadding(5)
+
+      // V Guide
+      var vGuide = d3.select('svg')
+        // create g html element and append next things to this group element
+        .append('g')
+          vAxis(vGuide)
+          vGuide.attr('transform', 'translate('+margin.left+','
+          +margin.top+')')
+          vGuide.selectAll('path')
+            .style('fill', 'none')
+            .style('stroke', '#000')
+          vGuide.selectAll('line')
+            .style('stroke', '#000')
+
+      // Horizontal Axis
+      var hAxis = d3.svg.axis()
+        .scale(hScale)
+        .orient('bottom')
+        .tickValues(hScale.domain().filter(function(d, i){
+          return !(i % (myData.length/6));
+        }));
+
+      // H Guide
+      var hGuide = d3.select('svg')
+        // create g html element and append next things to this group element
+        .append('g')
+          hAxis(hGuide)
+          hGuide.attr('transform', 'translate('+margin.left+','
+            +(height + margin.top)+')')
+          hGuide.selectAll('path')
+            .style('fill', 'none')
+            .style('stroke', '#000')
+          hGuide.selectAll('line')
+            .style('stroke', '#000')
+    </script>
+  </body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Circles</title>
+    <!-- Adding d3 library here -->
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  </head>
+  <body>
+    <div id = "circleArea"></div>
+
+    <script>
+
+      var myData = [];
+
+
+      var margin = {
+        top: 90,
+        bottom: 140,
+        left: 100,
+        right: 130
+      }
+
+      var height = 800 - margin.top - margin.bottom;
+      var width = 800 - margin.left - margin.right;
+
+      var animateDuration = 2500;
+      var animateDelay = 400;
+
+      for(var i = 0; i < 250; i++) {
+        myData.push(Math.round(Math.random() * 20));
+      }
+
+      var yScale = d3.scale.linear()
+      .domain([0, d3.max(myData)])
+      .range([0, height]);
+
+      var xScale = d3.scale.ordinal()
+      .domain(d3.range(0, myData.length))
+      .rangeBands([0, width/5]);
+
+      var colors = d3.scale.linear()
+        .domain([0, myData.length])
+        .range(['#ffe9ec', '#ff6a80'])
+
+      var differentCircles = d3.select('#circleArea')
+      .append('svg')
+
+      .attr('width', width + margin.right + margin.left)
+      .attr('height', height + margin.top + margin.bottom)
+
+      .style('background', '#b7e5e5')
+
+      .selectAll('circle')
+      .data(myData)
+
+      .enter().append('circle')
+      .style('fill', function(d, i){
+        return colors(i)
+      })
+
+      .attr('cx', function(d, i){
+        return Math.round(Math.random() * 700);
+      })
+      .attr('cy', function(d, i){
+        return Math.round(Math.random() * 700);
+      })
+
+      .attr('r', 20)
+      .attr('stroke', '#ffe9ec')
+
+      .on('mouseover', function(d){
+        differentCircles.transition()
+          .attr('r', function(d){
+            return yScale(d/10);
+          })
+          .attr('cx', function(d){
+            return Math.round(Math.random() * 700);
+          })
+          .attr('cy', function(d){
+            return Math.round(Math.random() * 700);
+          })
+          d3.select(this)
+          .duration(animateDuration)
+
+          // making bar display after a delay between 2 bars
+          .delay(function(d, i){
+            return i * animateDelay
+          })
+
+          // elastic animation
+          .ease('elastic')
+      })
+
+
+
+    </script>
+  </body>
+</html>
